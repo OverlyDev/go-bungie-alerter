@@ -9,18 +9,18 @@ import (
 )
 
 // Thanks, internet
-var public_token = "Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfbDKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw"
+var publicToken = "Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfbDKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw"
 
-type guest_token_struct struct {
-	Guest_token string `json:"guest_token"`
+type guestTokenStruct struct {
+	GuestToken string `json:"guest_token"`
 }
 
-type twitter_auth_struct struct {
+type twitterAuthStruct struct {
 	Public string
 	Guest  string
 }
 
-type tweet_struct struct {
+type tweetStruct struct {
 	Created  string `json:"created_at"`
 	Id       string `json:"id_str"`
 	Text     string `json:"text"`
@@ -32,7 +32,7 @@ type tweet_struct struct {
 }
 
 // Obtains an auth token from a public token
-func get_twitter_auth() {
+func getTwitterAuth() {
 	// Create the request
 	req, err := http.NewRequest("POST", urls.Twitter.Auth, nil)
 	if err != nil {
@@ -40,7 +40,7 @@ func get_twitter_auth() {
 	}
 
 	// Add our header with the public token
-	req.Header.Set("Authorization", public_token)
+	req.Header.Set("Authorization", publicToken)
 
 	// Send request
 	client := http.DefaultClient
@@ -56,17 +56,17 @@ func get_twitter_auth() {
 	}
 
 	// Unmarshal json response
-	var responseObject guest_token_struct
+	var responseObject guestTokenStruct
 	json.Unmarshal(responseData, &responseObject)
 
 	// Save token
-	twitter_auth.Public = public_token
-	twitter_auth.Guest = responseObject.Guest_token
+	twitterAuth.Public = publicToken
+	twitterAuth.Guest = responseObject.GuestToken
 
 }
 
 // Returns latest tweet from supplied url
-func make_twitter_request(url, account string) (*tweet_struct, error) {
+func makeTwitterRequest(url, account string) (*tweetStruct, error) {
 	// Create the request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -74,9 +74,9 @@ func make_twitter_request(url, account string) (*tweet_struct, error) {
 		return nil, err
 	}
 
-	// Add our auth headers, acquired via get_twitter_auth
-	req.Header.Set("Authorization", twitter_auth.Public)
-	req.Header.Set("x-guest-token", twitter_auth.Guest)
+	// Add our auth headers, acquired via getTwitterAuth
+	req.Header.Set("Authorization", twitterAuth.Public)
+	req.Header.Set("x-guest-token", twitterAuth.Guest)
 
 	//Send request
 	client := http.DefaultClient
@@ -100,16 +100,16 @@ func make_twitter_request(url, account string) (*tweet_struct, error) {
 	}
 
 	// Unmarshall json response
-	var responseObject []tweet_struct
+	var responseObject []tweetStruct
 	json.Unmarshal(responseData, &responseObject)
 
 	// Grab and return the latest tweet
-	latest_tweet := responseObject[0]
-	return &latest_tweet, nil
+	latestTweet := responseObject[0]
+	return &latestTweet, nil
 }
 
 // Checks for new tweets using all queries stored in urls.Twitter.Queries
-func check_for_tweets() bool {
+func checkForTweets() bool {
 	changes := false
 	v := reflect.ValueOf(urls.Twitter.Queries)
 	vType := v.Type()
@@ -120,16 +120,16 @@ func check_for_tweets() bool {
 		url := v.Field(i).String()
 
 		// Failed to get the tweet :(
-		tweet, err := make_twitter_request(url, account)
+		tweet, err := makeTwitterRequest(url, account)
 		if err != nil {
 			continue
 		}
 
-		tweet_time := convert_twitter_time_str_to_time(tweet.Created)
-		last_tweet_time := convert_RFC1123_str_to_time(timestamps.TwitterBungieHelp)
+		tweetTime := convertTwitterTimeStrToTime(tweet.Created)
+		lastTweetTime := convertStrToTime(timestamps.TwitterBungieHelp)
 
 		// No new tweets
-		if tweet_time.Before(last_tweet_time) || tweet_time.Equal(last_tweet_time) {
+		if tweetTime.Before(lastTweetTime) || tweetTime.Equal(lastTweetTime) {
 			InfoLogger.Printf("Up to date: %s\n", account)
 			changes = changes || false
 
@@ -138,13 +138,13 @@ func check_for_tweets() bool {
 			AlertLogger.Printf("New tweet from: %s\n", account)
 			content := fmt.Sprintf("New tweet from %s\n", account)
 			content += tweet.Entities.Urls[0].ExpandedUrl
-			send_discord_webhook(content)
-			new_timestamp := convert_time_to_RFC1123_str(tweet_time)
+			sendDiscordWebhook(content)
+			newTimestamp := convertTimeToStr(tweetTime)
 			switch account {
 			case "BungieHelp":
-				timestamps.TwitterBungieHelp = new_timestamp
+				timestamps.TwitterBungieHelp = newTimestamp
 			case "Destiny2Team":
-				timestamps.TwitterDestiny2Team = new_timestamp
+				timestamps.TwitterDestiny2Team = newTimestamp
 			}
 			changes = changes || true
 		}

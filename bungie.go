@@ -5,7 +5,7 @@ import (
 )
 
 // Attempts to return a *gofeed.Feed (up to 3 tries)
-func get_feed(parser *gofeed.Parser) (*gofeed.Feed, error) {
+func getBungieFeed(parser *gofeed.Parser) (*gofeed.Feed, error) {
 	tries := 1
 	var feed *gofeed.Feed
 	var err error = nil
@@ -23,27 +23,27 @@ func get_feed(parser *gofeed.Parser) (*gofeed.Feed, error) {
 }
 
 // Checks for new bungie.net posts, sending a webhook message if there's a new one
-func parse_bungie_posts(parser *gofeed.Parser) bool {
-	feed, err := get_feed(parser)
+func parseBungiePosts(parser *gofeed.Parser) bool {
+	feed, err := getBungieFeed(parser)
 	if err != nil {
 		ErrorLogger.Println("Failed to get feed")
 		return false
 	}
 
-	newest_item := feed.Items[0]
+	newestItem := feed.Items[0]
 
-	last_alert := convert_RFC1123_str_to_time(timestamps.Bungie)
-	latest_post := convert_RFC1123_str_to_time(newest_item.Published)
+	lastAlert := convertStrToTime(timestamps.Bungie)
+	latestPost := convertStrToTime(newestItem.Published)
 
-	if latest_post.Before(last_alert) || latest_post.Equal(last_alert) {
+	if latestPost.Before(lastAlert) || latestPost.Equal(lastAlert) {
 		InfoLogger.Println("Up to date: Bungie.net")
 		return false
 	} else {
 		AlertLogger.Println("New Bungie.net post")
-		content := newest_item.Title + "\n"
-		content += urls.Bungie.Base + newest_item.Link
-		send_discord_webhook(content)
-		timestamps.Bungie = convert_time_to_RFC1123_str(latest_post)
+		content := newestItem.Title + "\n"
+		content += urls.Bungie.Base + newestItem.Link
+		sendDiscordWebhook(content)
+		timestamps.Bungie = convertTimeToStr(latestPost)
 		return true
 	}
 

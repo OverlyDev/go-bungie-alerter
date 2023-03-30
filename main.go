@@ -10,12 +10,12 @@ import (
 )
 
 var (
-	InfoLogger   *log.Logger
-	ErrorLogger  *log.Logger
-	AlertLogger  *log.Logger
-	urls         url_storage_struct
-	twitter_auth twitter_auth_struct
-	timestamps   timestamp_struct
+	InfoLogger  *log.Logger
+	ErrorLogger *log.Logger
+	AlertLogger *log.Logger
+	urls        urlStorageStruct
+	twitterAuth twitterAuthStruct
+	timestamps  timestampStruct
 )
 
 func init() {
@@ -34,32 +34,34 @@ func init() {
 	}
 
 	// Set up all the urls
-	populate_url_storage()
+	populateUrlStorage()
 
 	// Twitter auth setup stuff
-	get_twitter_auth()
-	if twitter_auth.Guest == "" {
+	getTwitterAuth()
+	if twitterAuth.Guest == "" {
 		ErrorLogger.Fatalln("Failed to obtain twitter auth token, exiting")
 	}
 
 	// Load timestamps file
-	read_timestamps_file()
+	readTimestampsFile()
 }
 
 func main() {
-	feed_parser := gofeed.NewParser()
+	feedParser := gofeed.NewParser()
 
 	InfoLogger.Println("Starting")
 	for {
+		changes := false
+
 		InfoLogger.Println("Getting Bungie.net feed")
-		changes := false || parse_bungie_posts(feed_parser)
+		changes = changes || parseBungiePosts(feedParser)
 
 		InfoLogger.Println("Getting tweets")
-		changes = changes || check_for_tweets()
+		changes = changes || checkForTweets()
 
 		if changes {
 			AlertLogger.Println("Changes to timestamps, writing to disk")
-			write_timestamps_file()
+			writeTimestampsFile()
 		} else {
 			InfoLogger.Println("No changes to timestamps")
 		}
