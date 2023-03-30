@@ -1,7 +1,8 @@
 MAIN := .
-OUT := bin/hello
+OUT := bin/bungie-alerter
 
 build: format tidy clean
+	go generate
 	go build -o $(OUT) $(MAIN)
 
 run: format
@@ -16,11 +17,13 @@ format:
 clean:
 	rm -f bin/*
 	rm -rf _context
+	rm -rf embeds
 
 exec: build
 	$(OUT)
 
 minify: clean
+	go generate
 	go build -o bin/hello-normal $(MAIN)
 	go build -ldflags "-s -w" -o bin/hello-stripped $(MAIN)
 	upx -o bin/hello-normal-upx bin/hello-normal

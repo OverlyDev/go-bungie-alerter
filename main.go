@@ -19,6 +19,8 @@ var (
 )
 
 func init() {
+	printVersion()
+
 	// Set up the loggers
 	InfoLogger = log.New(log.Default().Writer(), "INFO | ", log.Ldate|log.Ltime|log.Lshortfile|log.LUTC)
 	ErrorLogger = log.New(log.Default().Writer(), "ERROR | ", log.Ldate|log.Ltime|log.Lshortfile|log.LUTC)
