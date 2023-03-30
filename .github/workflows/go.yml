@@ -1,16 +1,15 @@
 name: Build Release
 
 on:
-  release:
-    types:
-      - created
+  push:
+    tags:
+      - "*"
   workflow_dispatch:
 
 env:
   BINARY_NAME: "BungieAlerter"
 
 jobs:
-
   binaries:
     runs-on: ubuntu-latest
     steps:
@@ -30,9 +29,8 @@ jobs:
       run: go build -ldflags "-s -w" -o bin/$BINARY_NAME-linux-amd64 .
     
     - name: Publish release
-      id: publish
-      uses: packagrio/action-publishr-go@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: ncipollo/release-action@v1
       with:
-        upload_assets: 'bin/*'
+        artifacts: "bin/*"
+        omitBody: "true"
+        makeLatest: "true"
