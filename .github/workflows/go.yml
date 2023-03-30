@@ -40,11 +40,15 @@ jobs:
     - name: Build linux/amd64
       run: go build -ldflags "-s -w" -o bin/$BINARY_NAME-linux-amd64 .
     
+    - name: Build windows/amd64
+      run: env GOOS=windows GOARCH=386 go build -ldflags "-s -w" -o bin/$BINARY_NAME-windows-amd64 .
+    
     - name: Publish release
       uses: ncipollo/release-action@v1
       with:
         artifacts: "bin/*"
         omitBody: true
         makeLatest: true
+        generateReleaseNotes: true
         commit: ${{ github.sha }}
         tag: ${{ steps.version_bump.outputs.new_tag }}
