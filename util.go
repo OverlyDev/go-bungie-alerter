@@ -54,6 +54,7 @@ func convert_time_to_RFC1123_str(input time.Time) string {
 	return input.Format(time.RFC1123)
 }
 
+// Convert twitter's stupid timestamp to a time.Time object
 func convert_twitter_time_str_to_time(input string) time.Time {
 	// "Wed Mar 29 22:15:50 +0000 2023"
 	// %d (0-padded) or %e (not padded) ?
@@ -64,6 +65,7 @@ func convert_twitter_time_str_to_time(input string) time.Time {
 	return data
 }
 
+// Reads in timestamps.json, creating a fresh one with the current timestamp if it doesn't exist
 func read_timestamps_file() {
 	data, err := os.ReadFile(timestamps_file_path)
 	if err != nil {
@@ -79,6 +81,7 @@ func read_timestamps_file() {
 	}
 }
 
+// Writes to the timestamps.json file
 func write_timestamps_file() {
 	data, err := json.Marshal(timestamps)
 	if err != nil {
@@ -91,6 +94,7 @@ func write_timestamps_file() {
 	}
 }
 
+// Fills out the various urls
 func populate_url_storage() {
 	urls.Twitter.Auth = "https://api.twitter.com/1.1/guest/activate.json"
 	urls.Twitter.ApiBase = "https://api.twitter.com/1.1/"

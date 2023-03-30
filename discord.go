@@ -6,8 +6,7 @@ import (
 
 // Sends a message via discord webhook containing the post title and link
 func send_discord_webhook(content string) {
-	username := "BotUser"
-
+	username := "Bungie Alerter"
 	message := discordwebhook.Message{
 		Username: &username,
 		Content:  &content,

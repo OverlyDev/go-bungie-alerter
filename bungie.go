@@ -22,6 +22,7 @@ func get_feed(parser *gofeed.Parser) (*gofeed.Feed, error) {
 
 }
 
+// Checks for new bungie.net posts, sending a webhook message if there's a new one
 func parse_bungie_posts(parser *gofeed.Parser) bool {
 	feed, err := get_feed(parser)
 	if err != nil {

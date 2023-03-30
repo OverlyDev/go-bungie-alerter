@@ -8,6 +8,7 @@ import (
 	"reflect"
 )
 
+// Thanks, internet
 var public_token = "Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfbDKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw"
 
 type guest_token_struct struct {
@@ -30,6 +31,7 @@ type tweet_struct struct {
 	} `json:"entities"`
 }
 
+// Obtains an auth token from a public token
 func get_twitter_auth() {
 	// Create the request
 	req, err := http.NewRequest("POST", urls.Twitter.Auth, nil)
@@ -63,6 +65,7 @@ func get_twitter_auth() {
 
 }
 
+// Returns latest tweet from supplied url
 func make_twitter_request(url, account string) (*tweet_struct, error) {
 	// Create the request
 	req, err := http.NewRequest("GET", url, nil)
@@ -83,6 +86,7 @@ func make_twitter_request(url, account string) (*tweet_struct, error) {
 		return nil, err
 	}
 
+	// Something went wrong :(
 	if response.StatusCode != 200 {
 		ErrorLogger.Printf("Got bad twitter response from: %s\n", account)
 		return nil, fmt.Errorf("no data")
@@ -104,26 +108,32 @@ func make_twitter_request(url, account string) (*tweet_struct, error) {
 	return &latest_tweet, nil
 }
 
+// Checks for new tweets using all queries stored in urls.Twitter.Queries
 func check_for_tweets() bool {
 	changes := false
 	v := reflect.ValueOf(urls.Twitter.Queries)
 	vType := v.Type()
 
+	// Iterate through urls.Twitter.Queries
 	for i := 0; i < v.NumField(); i++ {
 		account := vType.Field(i).Name
 		url := v.Field(i).String()
 
+		// Failed to get the tweet :(
 		tweet, err := make_twitter_request(url, account)
 		if err != nil {
 			continue
 		}
 
 		tweet_time := convert_twitter_time_str_to_time(tweet.Created)
-
 		last_tweet_time := convert_RFC1123_str_to_time(timestamps.TwitterBungieHelp)
+
+		// No new tweets
 		if tweet_time.Before(last_tweet_time) || tweet_time.Equal(last_tweet_time) {
 			InfoLogger.Printf("Up to date: %s\n", account)
 			changes = changes || false
+
+			// There do be a new tweet
 		} else {
 			AlertLogger.Printf("New tweet from: %s\n", account)
 			content := fmt.Sprintf("New tweet from %s\n", account)
