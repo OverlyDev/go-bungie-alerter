@@ -30,7 +30,7 @@ func init() {
 	godotenv.Load()
 	_, found := os.LookupEnv("DISCORD_WEBHOOK")
 	if !found {
-		ErrorLogger.Fatalln("DISCORD_WEBHOOK not found in evnironment, exiting")
+		ErrorLogger.Fatalln("DISCORD_WEBHOOK not found in environment, exiting")
 	} else {
 		urls.Discord.WebhookUrl = os.Getenv("DISCORD_WEBHOOK")
 	}
