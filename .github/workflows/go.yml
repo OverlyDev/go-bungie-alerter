@@ -1,9 +1,11 @@
 name: Build Release
 
 on:
-  push:
-    tags:
-      - "*"
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
   workflow_dispatch:
 
 env:
@@ -13,9 +15,19 @@ jobs:
   binaries:
     runs-on: ubuntu-latest
     steps:
+    
     - uses: actions/checkout@v3
-      with: 
+      with:
+        ref: ${{ github.sha }}
         fetch-depth: 0
+        
+    - name: Bump version and push tag
+      id: version_bump
+      uses: anothrNick/github-tag-action@1.61.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
+        DEFAULT_BUMP: None
 
     - name: Set up Go
       uses: actions/setup-go@v3
@@ -32,5 +44,7 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         artifacts: "bin/*"
-        omitBody: "true"
-        makeLatest: "true"
+        omitBody: true
+        makeLatest: true
+        commit: ${{ github.sha }}
+        tag: ${{ steps.version_bump.outputs.new_tag }}
