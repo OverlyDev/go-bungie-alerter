@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//go:generate bash gen_embed_files.sh
+//go:generate sh gen_embed_files.sh
 var (
 	//go:embed embeds/time.txt
 	buildTime string
