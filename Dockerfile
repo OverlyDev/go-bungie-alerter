@@ -1,25 +1,16 @@
-# Builder stage
-FROM golang:alpine AS builder
+# Grabber + packer stage
+FROM alpine as grabpack
 
-RUN apk add --no-cache bash git
+RUN apk add --no-cache upx wget
 
-WORKDIR /build
+WORKDIR /grabpack
 
-COPY go.mod ./
-COPY go.sum ./
-RUN go mod download
-
-COPY *.go ./
-COPY *.sh ./
-RUN go generate && go build -ldflags "-s -w" -o BA-base
-
-# Packer stage
-FROM alpine as packer
-COPY --from=builder /build/BA-base /packer/BA-base
-RUN apk add upx && upx --best --lzma -o /packer/BA-packed /packer/BA-base
+RUN arch=$(arch | sed s/aarch64/linux-arm64/ | sed s/x86_64/linux-amd64/) && \
+    wget https://github.com/OverlyDev/go-bungie-alerter/releases/latest/download/BungieAlerter-${arch} && \
+    upx --best --lzma -o /grabpack/BungieAlerter /grabpack/BungieAlerter-${arch} && \
+    chmod +x BungieAlerter
 
 # Final stage
 FROM alpine
-# COPY --from=builder /build/hello /app/hello
-COPY --from=packer /packer/BA-packed /app/BungieAlerter
+COPY --from=grabpack /grabpack/BungieAlerter /app/BungieAlerter
 CMD ["/app/BungieAlerter"]
