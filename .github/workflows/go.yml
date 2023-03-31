@@ -76,7 +76,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    needs: bump
+    needs: binaries
     steps:
     
     - name: Checkout
