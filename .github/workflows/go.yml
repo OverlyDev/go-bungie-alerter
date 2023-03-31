@@ -7,12 +7,6 @@ on:
     branches:
       - master
   workflow_dispatch:
-    inputs:
-      test:
-        type: boolean
-        description: test run (no version bumping or new release)
-        required: true
-        default: true
 
 env:
   BINARY_NAME: "BungieAlerter"
@@ -23,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new_version: ${{ steps.version_bump.outputs.new_tag}}
-    if: ${{ inputs.test != 'true' }} 
+    if: ${{ github.event_name != 'pull_request' }}
     steps:
     
     - uses: actions/checkout@v3
@@ -66,7 +60,7 @@ jobs:
     
     - name: Publish release
       uses: ncipollo/release-action@v1
-      if: ${{ inputs.test != 'true' }}
+      if: ${{ github.event_name != 'pull_request' }}
       with:
         artifacts: "bin/*"
         omitBody: true
@@ -108,7 +102,7 @@ jobs:
         mkdir -p _context
         cp *.go _context/.
         cp go.mod _context/.
-        cp go.com _context/.
+        cp go.sum _context/.
         cp *.sh _context/.
         cp Dockerfile _context/.
         cd _context
