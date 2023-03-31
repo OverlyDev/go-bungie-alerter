@@ -18,7 +18,7 @@ var (
 
 func printVersion() {
 	fmt.Printf(
-		"go-bungie-alerter | Version: %s | Commit: %s | Built: %s\n",
+		"BungieAlerter | Version: %s | Commit: %s | Built: %s\n",
 		strings.ReplaceAll(version, "\n", ""),
 		strings.ReplaceAll(commit, "\n", ""),
 		strings.ReplaceAll(buildTime, "\n", ""),

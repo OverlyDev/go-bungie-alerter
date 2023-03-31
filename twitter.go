@@ -122,11 +122,12 @@ func checkForTweets() bool {
 		// Failed to get the tweet :(
 		tweet, err := makeTwitterRequest(url, account)
 		if err != nil {
+			ErrorLogger.Printf("Error getting tweets for: %s\n", account)
 			continue
 		}
 
 		tweetTime := convertTwitterTimeStrToTime(tweet.Created)
-		lastTweetTime := convertStrToTime(timestamps.TwitterBungieHelp)
+		lastTweetTime := convertStrToTime(getField(&timestamps, "Twitter"+account))
 
 		// No new tweets
 		if tweetTime.Before(lastTweetTime) || tweetTime.Equal(lastTweetTime) {
@@ -140,6 +141,7 @@ func checkForTweets() bool {
 			content += tweet.Entities.Urls[0].ExpandedUrl
 			sendDiscordWebhook(content)
 			newTimestamp := convertTimeToStr(tweetTime)
+
 			switch account {
 			case "BungieHelp":
 				timestamps.TwitterBungieHelp = newTimestamp

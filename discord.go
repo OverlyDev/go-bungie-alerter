@@ -12,6 +12,12 @@ func sendDiscordWebhook(content string) {
 		Content:  &content,
 	}
 
+	// Bail if notifications are disabled
+	if !notifications {
+		return
+	}
+
+	// Send the notification
 	err := discordwebhook.SendMessage(urls.Discord.WebhookUrl, message)
 	if err != nil {
 		ErrorLogger.Fatalln(err)
