@@ -1,4 +1,4 @@
-name: Build Binaries
+name: Build Shippables
 
 on:
   pull_request:
@@ -15,7 +15,9 @@ jobs:
   version:
     runs-on: ubuntu-latest
     outputs:
-      new_version: ${{ steps.version_bump.outputs.new_tag}}
+      new_version:
+        description: "The new version"
+        value: ${{ steps.version_bump.outputs.new_tag}}
     steps:
     
     - name: Checkout
