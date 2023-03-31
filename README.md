@@ -30,13 +30,14 @@ There's now a basic CLI. Running the binary without any args will provide you wi
 A quick overview of the available options:
 
 args:
-- `go` - starts BungieAlerter
+- `go`   - starts BungieAlerter
 - `help` - shows help menu
 
 flags:
 - `--webhook/-w` - specify the webhook url to use
-- `--silent/-s` - run without firing the webhook
-- `--help/-h` - shows help menu
+- `--silent/-s`  - run without firing the webhook
+- `--debug/-d`   - logs additional information
+- `--help/-h`    - shows help menu
 - `--version/-v` - shows the binary version information 
 
 examples:
