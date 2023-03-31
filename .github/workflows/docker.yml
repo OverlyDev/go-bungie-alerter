@@ -2,7 +2,7 @@ name: Build Docker images
 
 on:
   workflow_run:
-    workflows: ["Build Binaries"]
+    workflows: [Build Binaries]
     branches: [master]
     types:
       - completed
