@@ -83,7 +83,7 @@ jobs:
       env:
         BUMP_VERSION: ${{ needs.version.outputs.new_version }}
       run: |
-        if  [ ! -z $BUMP_VERSION ] && [ $BUMP_VERSION != "" ]; then
+        if [ $BUMP_VERSION != "" ]; then
           echo $BUMP_VERSION >> $GITHUB_OUTPUT
         else
           echo "testing" >> $GITHUB_OUTPUT
