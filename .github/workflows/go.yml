@@ -95,8 +95,11 @@ jobs:
     
     - name: Build and push
       uses: docker/build-push-action@v4
+      env:
+        VERSION_TAG: ${{ env.REPO_TAG }}:${{ needs.version.outputs.new_version }}
+        LATEST_TAG: ${{ env.REPO_TAG }}:latest
       with:
         context: .
         platforms: linux/amd64,linux/arm64
         push: true
-        tags: ${{ env.REPO_TAG }}:${{ needs.version.outputs.new_version }},${{ env.REPO_TAG }}:latest  
+        tags: ${{ env.VERSION_TAG }},${{ env.LATEST_TAG }}  
