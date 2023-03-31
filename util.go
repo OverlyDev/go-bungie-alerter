@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/signal"
+	"reflect"
+	"syscall"
 	"time"
 
 	"github.com/itchyny/timefmt-go"
@@ -35,6 +38,12 @@ type timestampStruct struct {
 	TwitterDestiny2Team string
 }
 
+func getField(t *timestampStruct, field string) string {
+	r := reflect.ValueOf(t)
+	f := reflect.Indirect(r).FieldByName(field)
+	return string(f.String())
+}
+
 // Generate a timestamp of now in UTC
 func timestamp() time.Time {
 	return time.Now().UTC()
@@ -44,7 +53,7 @@ func timestamp() time.Time {
 func convertStrToTime(input string) time.Time {
 	data, err := time.Parse(time.RFC1123, input)
 	if err != nil {
-		fmt.Println(err)
+		ErrorLogger.Println(err)
 	}
 	return data
 }
@@ -60,7 +69,7 @@ func convertTwitterTimeStrToTime(input string) time.Time {
 	// %d (0-padded) or %e (not padded) ?
 	data, err := timefmt.Parse(input, "%a %b %d %H:%M:%S %z %Y")
 	if err != nil {
-		fmt.Println(err)
+		ErrorLogger.Println(err)
 	}
 	return data
 }
@@ -104,4 +113,15 @@ func populateUrlStorage() {
 	template := urls.Twitter.ApiBase + "statuses/user_timeline.json?screen_name=%s&exclude_replies=true&include_rts=false&count=50"
 	urls.Twitter.Queries.BungieHelp = fmt.Sprintf(template, "BungieHelp")
 	urls.Twitter.Queries.Destiny2Team = fmt.Sprintf(template, "Destiny2Team")
+}
+
+func signalHandler() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		fmt.Print("\r")
+		InfoLogger.Println("Goodbye")
+		os.Exit(0)
+	}()
 }

@@ -7,25 +7,44 @@ The repo is a mess, I know. I have no idea what I'm doing :)
 Release binaries can be found to the right side, or [here](https://github.com/OverlyDev/go-bungie-alerter/releases/latest) is a direct link to the latest release.
 
 ## Usage
+
+### Webhook
 No matter which platform you run BungieAlerter on, it needs access to the variable `DISCORD_WEBHOOK`.
 
 This variable holds the full discord webhook url needed to send alerts.
 
 You can either:
-1. Export while executing the binary:
+1. Provide the webhook via the flag:
+    - `BungieAlerter --webhook/-w <your webhook>`
+2. Export while executing the binary:
     - Linux: `DISCORD_WEBHOOK="\<your webhook\>" ./BungieAlerter`
     - Windows (powershell): `$env:DISCORD_WEBHOOK="\<your webhook\>"; .\BungieAlerter-windows-amd64.exe; $env:DISCORD_WEBHOOK=$null`
-2. Save it in a .env file beside BungieAlerter:
+3. Save it in a .env file beside BungieAlerter:
     - create .env file in the same directory as BungieAlerter
-    - add DISCORD_WEBHOOK="\<your webhook\>" to it
+    - add `DISCORD_WEBHOOK="\<your webhook\>"` to it
     - Run the binary
+
+### CLI
+There's now a basic CLI. Running the binary without any args will provide you with usage information. It won't actually start unless you give it the `go` arg.
+
+A quick overview of the available options:
+
+args:
+- `go` - starts BungieAlerter
+- `help` - shows help menu
+
+flags:
+- `--webhook/-w` - specify the webhook url to use
+- `--silent/-s` - run without firing the webhook
+- `--help/-h` - shows help menu
+- `--version/-v` - shows the binary version information 
+
+examples:
+- Run with specified webhook: `BungieAlerter -w <your webhook> go`
+- Run without webhook notifications: `BungieAlerter -s go`
 
 ## Future
 There's a lot of refinement and features I'd like to add. Below should hopefully be an up-to-date listing of those.
 
-- cli args
-    - provide webhook
-    - configuration options
-    - flag to run without webhook notifications ("terminal mode"?)
 - publish docker images (skeleton is already in place)
 - test if minification breaks things (only briefly played around with this)
