@@ -1,6 +1,8 @@
 # Builder stage
 FROM golang:alpine AS builder
 
+RUN apk add --no-cache bash git
+
 WORKDIR /build
 
 COPY go.mod ./
