@@ -95,6 +95,7 @@ jobs:
       uses: docker/setup-qemu-action@v2
       
     - name: Build Docker images
+      if: github.event_name == 'pull_request'
       env:
         VERSION_TAG: ${{ env.REPO_TAG }}:${{ steps.docker_version.outputs.* }}
         LATEST_TAG: ${{ env.REPO_TAG }}:latest
