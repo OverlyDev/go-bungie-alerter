@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new_version: ${{ steps.version_bump.outputs.new_tag}}
-    if: ${{ github.event_name != 'pull_request' }}
+    if: github.event_name == 'pull_request'
     steps:
     
     - uses: actions/checkout@v3
@@ -60,7 +60,7 @@ jobs:
     
     - name: Publish release
       uses: ncipollo/release-action@v1
-      if: ${{ github.event_name != 'pull_request' }}
+      if: github.event_name == 'pull_request'
       with:
         artifacts: "bin/*"
         omitBody: true
