@@ -12,12 +12,10 @@ env:
   REPO_NAME: ghcr.io/overlydev/bungie-alerter
 
 jobs:
-  version:
+  bump:
     runs-on: ubuntu-latest
     outputs:
-      new_version:
-        description: "The new version"
-        value: ${{ steps.version_bump.outputs.new_tag}}
+      new_version: ${{ steps.version_bump.outputs.new_tag}}
     steps:
     
     - name: Checkout
@@ -36,7 +34,7 @@ jobs:
   
   binaries:
     runs-on: ubuntu-latest
-    needs: version
+    needs: bump
     steps:
     
     - name: Checkout
@@ -69,11 +67,16 @@ jobs:
         makeLatest: true
         generateReleaseNotes: true
         commit: ${{ github.sha }}
-        tag: ${{ needs.version.outputs.new_version }}
+        tag: ${{ needs.bump.outputs.new_version }}
+    
+    - name: sanity
+      env:
+        PLS: ${{ needs.bump.outputs.new_version }}
+      run: echo $PLS
 
   docker:
     runs-on: ubuntu-latest
-    needs: binaries
+    needs: bump
     steps:
     
     - name: Checkout
@@ -88,7 +91,7 @@ jobs:
       with:
         images: ${{ env.REPO_NAME }}
         tags: |
-          type=raw,value=${{ needs.version.outputs.new_version }}
+          type=raw,value=${{ needs.bump.outputs.new_version }}
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
