@@ -29,7 +29,7 @@ func cliHandler() {
 			strings.ReplaceAll(buildTime, "\n", ""),
 		),
 		Authors: []*cli.Author{
-			&cli.Author{
+			{
 				Name:  "OverlyDev",
 				Email: "kyle@overly.dev",
 			},
