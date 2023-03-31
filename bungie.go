@@ -11,6 +11,7 @@ func getBungieFeed(parser *gofeed.Parser) (*gofeed.Feed, error) {
 	var err error = nil
 
 	for tries <= 3 {
+		DebugLogger.Println("Making request to:", urls.Bungie.Rss)
 		feed, err = parser.ParseURL(urls.Bungie.Rss)
 		if err != nil {
 			tries++
@@ -33,14 +34,21 @@ func parseBungiePosts(parser *gofeed.Parser) bool {
 	newestItem := feed.Items[0]
 
 	lastAlert := convertStrToTime(timestamps.Bungie)
+	DebugLogger.Println("Last Alert Time:", lastAlert)
+
 	latestPost := convertStrToTime(newestItem.Published)
+	DebugLogger.Println("Latest Post Time:", latestPost)
 
 	if latestPost.Before(lastAlert) || latestPost.Equal(lastAlert) {
 		InfoLogger.Println("Up to date: Bungie.net")
 		return false
 	} else {
 		AlertLogger.Println("New Bungie.net post")
-		content := newestItem.Title + "\n"
+
+		DebugLogger.Println("Title:", newestItem.Title)
+		DebugLogger.Println("Link:", newestItem.Link)
+
+		content := "New Bungie.net post\n"
 		content += urls.Bungie.Base + newestItem.Link
 		sendDiscordWebhook(content)
 		timestamps.Bungie = convertTimeToStr(latestPost)

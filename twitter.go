@@ -21,14 +21,9 @@ type twitterAuthStruct struct {
 }
 
 type tweetStruct struct {
-	Created  string `json:"created_at"`
-	Id       string `json:"id_str"`
-	Text     string `json:"text"`
-	Entities struct {
-		Urls []struct {
-			ExpandedUrl string `json:"expanded_url"`
-		} `json:"urls"`
-	} `json:"entities"`
+	Created string `json:"created_at"`
+	Id      string `json:"id_str"`
+	Text    string `json:"text"`
 }
 
 // Obtains an auth token from a public token
@@ -43,16 +38,19 @@ func getTwitterAuth() {
 	req.Header.Set("Authorization", publicToken)
 
 	// Send request
+	DebugLogger.Println("Sending twitter auth request")
 	client := http.DefaultClient
 	response, err := client.Do(req)
 	if err != nil {
 		ErrorLogger.Println(err)
+		DebugLogger.Println("Response:", response)
 	}
 
 	// Read the body
 	responseData, err := io.ReadAll(response.Body)
 	if err != nil {
 		ErrorLogger.Println(err)
+		DebugLogger.Println("ResponseData:", responseData)
 	}
 
 	// Unmarshal json response
@@ -62,6 +60,7 @@ func getTwitterAuth() {
 	// Save token
 	twitterAuth.Public = publicToken
 	twitterAuth.Guest = responseObject.GuestToken
+	DebugLogger.Println("Twitter Token:", twitterAuth.Guest)
 
 }
 
@@ -77,18 +76,22 @@ func makeTwitterRequest(url, account string) (*tweetStruct, error) {
 	// Add our auth headers, acquired via getTwitterAuth
 	req.Header.Set("Authorization", twitterAuth.Public)
 	req.Header.Set("x-guest-token", twitterAuth.Guest)
+	DebugLogger.Println("Headers:", req.Header)
 
 	//Send request
+	DebugLogger.Println("Sending twitter tweet request")
 	client := http.DefaultClient
 	response, err := client.Do(req)
 	if err != nil {
 		ErrorLogger.Println(err)
+		DebugLogger.Println("Response:", response)
 		return nil, err
 	}
 
 	// Something went wrong :(
 	if response.StatusCode != 200 {
 		ErrorLogger.Printf("Got bad twitter response from: %s\n", account)
+		DebugLogger.Println("Response:", response)
 		return nil, fmt.Errorf("no data")
 	}
 
@@ -96,6 +99,7 @@ func makeTwitterRequest(url, account string) (*tweetStruct, error) {
 	responseData, err := io.ReadAll(response.Body)
 	if err != nil {
 		ErrorLogger.Println(err)
+		DebugLogger.Println("ResponseData:", responseData)
 		return nil, err
 	}
 
@@ -105,6 +109,7 @@ func makeTwitterRequest(url, account string) (*tweetStruct, error) {
 
 	// Grab and return the latest tweet
 	latestTweet := responseObject[0]
+	DebugLogger.Println("LatestTweet:", latestTweet)
 	return &latestTweet, nil
 }
 
@@ -123,11 +128,14 @@ func checkForTweets() bool {
 		tweet, err := makeTwitterRequest(url, account)
 		if err != nil {
 			ErrorLogger.Printf("Error getting tweets for: %s\n", account)
+			DebugLogger.Println("Tweet:", tweet)
 			continue
 		}
 
 		tweetTime := convertTwitterTimeStrToTime(tweet.Created)
+		DebugLogger.Println("TweetTime:", tweetTime)
 		lastTweetTime := convertStrToTime(getField(&timestamps, "Twitter"+account))
+		DebugLogger.Println("LastTweetTime:", lastTweetTime)
 
 		// No new tweets
 		if tweetTime.Before(lastTweetTime) || tweetTime.Equal(lastTweetTime) {
@@ -138,17 +146,22 @@ func checkForTweets() bool {
 		} else {
 			AlertLogger.Printf("New tweet from: %s\n", account)
 			content := fmt.Sprintf("New tweet from %s\n", account)
-			content += tweet.Entities.Urls[0].ExpandedUrl
+			content += fmt.Sprintf(urls.Twitter.TweetTemplate, account, tweet.Id)
+			DebugLogger.Println("Content:", content)
 			sendDiscordWebhook(content)
 			newTimestamp := convertTimeToStr(tweetTime)
+			DebugLogger.Println("NewTimestamp:", newTimestamp)
 
 			switch account {
 			case "BungieHelp":
 				timestamps.TwitterBungieHelp = newTimestamp
+				DebugLogger.Println("Updated timestamps.TwitterBungieHelp with new timestamp")
 			case "Destiny2Team":
 				timestamps.TwitterDestiny2Team = newTimestamp
+				DebugLogger.Println("Updated timestamps.TwitterDestiny2Team with new timestamp")
 			}
 			changes = changes || true
+			DebugLogger.Println("Changes:", changes)
 		}
 	}
 	return changes

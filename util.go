@@ -23,9 +23,11 @@ type urlStorageStruct struct {
 		Rss  string
 	}
 	Twitter struct {
-		Auth    string
-		ApiBase string
-		Queries struct {
+		Auth          string
+		ApiBase       string
+		TweetTemplate string
+		QueryTemplate string
+		Queries       struct {
 			BungieHelp   string
 			Destiny2Team string
 		}
@@ -46,7 +48,9 @@ func getField(t *timestampStruct, field string) string {
 
 // Generate a timestamp of now in UTC
 func timestamp() time.Time {
-	return time.Now().UTC()
+	ts := time.Now().UTC()
+	DebugLogger.Println("Generated timestamp:", ts)
+	return ts
 }
 
 // Convert an RFC1123 string into a time.Time object
@@ -87,7 +91,9 @@ func readTimestampsFile() {
 	} else {
 		InfoLogger.Println("Loaded timestamps.json")
 		json.Unmarshal(data, &timestamps)
+		DebugLogger.Println("Timestamp data read:", timestamps)
 	}
+
 }
 
 // Writes to the timestamps.json file
@@ -101,18 +107,22 @@ func writeTimestampsFile() {
 	if err != nil {
 		ErrorLogger.Println(err)
 	}
+	DebugLogger.Println("Timestamp data wrote:", timestamps)
 }
 
 // Fills out the various urls
 func populateUrlStorage() {
 	urls.Twitter.Auth = "https://api.twitter.com/1.1/guest/activate.json"
 	urls.Twitter.ApiBase = "https://api.twitter.com/1.1/"
+	urls.Twitter.TweetTemplate = "https://twitter.com/%s/status/%s"
 	urls.Bungie.Base = "https://bungie.net"
 	urls.Bungie.Rss = "https://www.bungie.net/en/rss/News"
 
-	template := urls.Twitter.ApiBase + "statuses/user_timeline.json?screen_name=%s&exclude_replies=true&include_rts=false&count=50"
-	urls.Twitter.Queries.BungieHelp = fmt.Sprintf(template, "BungieHelp")
-	urls.Twitter.Queries.Destiny2Team = fmt.Sprintf(template, "Destiny2Team")
+	urls.Twitter.QueryTemplate = urls.Twitter.ApiBase + "statuses/user_timeline.json?screen_name=%s&exclude_replies=true&include_rts=false&count=50"
+	urls.Twitter.Queries.BungieHelp = fmt.Sprintf(urls.Twitter.QueryTemplate, "BungieHelp")
+	urls.Twitter.Queries.Destiny2Team = fmt.Sprintf(urls.Twitter.QueryTemplate, "Destiny2Team")
+
+	DebugLogger.Println("UrlStorage:", urls)
 }
 
 func signalHandler() {
@@ -121,6 +131,7 @@ func signalHandler() {
 	go func() {
 		<-c
 		fmt.Print("\r")
+		DebugLogger.Println("Triggered signal handler")
 		InfoLogger.Println("Goodbye")
 		os.Exit(0)
 	}()

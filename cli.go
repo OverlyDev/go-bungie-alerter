@@ -23,29 +23,29 @@ func censorWebhook(webhook string) string {
 func cliHandler() {
 	app := &cli.App{
 		Name: "BungieAlerter",
-		Version: fmt.Sprintf("%s | commit: %s | built: %s",
+		Version: fmt.Sprintf("%s | ref: %s | built: %s\n\t %s",
 			strings.ReplaceAll(version, "\n", ""),
-			strings.ReplaceAll(commit, "\n", ""),
+			strings.ReplaceAll(reference, "\n", ""),
 			strings.ReplaceAll(buildTime, "\n", ""),
+			"Repo: https://github.com/OverlyDev/go-bungie-alerter",
 		),
-		Authors: []*cli.Author{
-			&cli.Author{
-				Name:  "OverlyDev",
-				Email: "kyle@overly.dev",
-			},
-		},
 		Usage: "Sends messages to Discord webhooks on new Bungie posts",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "webhook",
 				Aliases: []string{"w"},
-				Usage:   "Discord webhook `URL` where notifications will be sent",
+				Usage:   "discord webhook `URL` where notifications will be sent",
 				EnvVars: []string{"DISCORD_WEBHOOK"},
 			},
 			&cli.BoolFlag{
 				Name:    "silent",
 				Aliases: []string{"s"},
-				Usage:   "Disables webhook usage",
+				Usage:   "disables webhook usage",
+			},
+			&cli.BoolFlag{
+				Name:    "debug",
+				Aliases: []string{"d"},
+				Usage:   "logs additional information",
 			},
 		},
 		Commands: []*cli.Command{
@@ -54,7 +54,22 @@ func cliHandler() {
 				Usage: "Start BungieAlerter",
 				Action: func(cCtx *cli.Context) error {
 					printVersion()
-					obtainWebhookUrl(cCtx)
+
+					// Enable debug logging if given debug flag
+					if cCtx.Bool("debug") {
+						setLoggerDebugFlags()
+						DebugLogger.Println("Debug logs enabled")
+					}
+
+					// Disable webhooks if given silent flag
+					if !cCtx.Bool("silent") {
+						notifications = true
+						obtainWebhookUrl(cCtx)
+					} else {
+						notifications = false
+						InfoLogger.Println("Webhook notifications disabled")
+					}
+
 					readTimestampsFile()
 					action_loop()
 					return nil
@@ -68,17 +83,15 @@ func cliHandler() {
 	}
 }
 
-func obtainWebhookUrl(cCtx *cli.Context) error {
-	// Disable webhooks if given silent flag
-	// Also bypass obtaining webhook url since it won't be used
-	if cCtx.Bool("silent") {
-		notifications = false
-		InfoLogger.Println("Webhook notifications disabled")
-		return nil
-	} else {
-		notifications = true
-	}
+func setLoggerDebugFlags() {
+	InfoLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
+	ErrorLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
+	AlertLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
+	DebugLogger.SetOutput(log.Default().Writer())
+	DebugLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
+}
 
+func obtainWebhookUrl(cCtx *cli.Context) error {
 	// Obtain webhook url from flags, falling back to env
 	webhook := cCtx.String("webhook")
 	source := ""
@@ -131,5 +144,6 @@ func action_loop() {
 		}
 		InfoLogger.Println("Sleeping 60s")
 		time.Sleep(60 * time.Second)
+		fmt.Println()
 	}
 }

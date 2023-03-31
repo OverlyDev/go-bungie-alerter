@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 )
 
@@ -8,6 +9,7 @@ var (
 	InfoLogger    *log.Logger
 	ErrorLogger   *log.Logger
 	AlertLogger   *log.Logger
+	DebugLogger   *log.Logger
 	urls          urlStorageStruct
 	twitterAuth   twitterAuthStruct
 	timestamps    timestampStruct
@@ -19,9 +21,10 @@ func init() {
 	signalHandler()
 
 	// Set up the loggers
-	InfoLogger = log.New(log.Default().Writer(), "INFO | ", log.Ldate|log.Ltime|log.Lshortfile|log.LUTC)
-	ErrorLogger = log.New(log.Default().Writer(), "ERROR | ", log.Ldate|log.Ltime|log.Lshortfile|log.LUTC)
-	AlertLogger = log.New(log.Default().Writer(), "ALERT | ", log.Ldate|log.Ltime|log.Lshortfile|log.LUTC)
+	InfoLogger = log.New(log.Default().Writer(), "INFO | ", log.Ldate|log.Ltime|log.LUTC)
+	ErrorLogger = log.New(log.Default().Writer(), "ERRO | ", log.Ldate|log.Ltime|log.LUTC)
+	AlertLogger = log.New(log.Default().Writer(), "ALRT | ", log.Ldate|log.Ltime|log.LUTC)
+	DebugLogger = log.New(io.Discard, "DBUG | ", log.Default().Flags())
 
 	// Set up all the urls
 	populateUrlStorage()
