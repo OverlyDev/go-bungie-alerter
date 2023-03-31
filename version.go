@@ -12,15 +12,15 @@ var (
 	buildTime string
 	//go:embed embeds/version.txt
 	version string
-	//go:embed embeds/commit.txt
-	commit string
+	//go:embed embeds/ref.txt
+	reference string
 )
 
 func printVersion() {
 	fmt.Printf(
-		"BungieAlerter | Version: %s | Commit: %s | Built: %s\n",
+		"BungieAlerter | Version: %s | Ref: %s | Built: %s\n",
 		strings.ReplaceAll(version, "\n", ""),
-		strings.ReplaceAll(commit, "\n", ""),
+		strings.ReplaceAll(reference, "\n", ""),
 		strings.ReplaceAll(buildTime, "\n", ""),
 	)
 }

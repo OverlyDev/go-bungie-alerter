@@ -6,23 +6,25 @@ import (
 
 // Sends a message via discord webhook containing the post title and link
 func sendDiscordWebhook(content string) {
+	// Bail if notifications are disabled
+	if !notifications {
+		return
+	}
+
 	username := "Bungie Alerter"
 	message := discordwebhook.Message{
 		Username: &username,
 		Content:  &content,
 	}
-
-	// Bail if notifications are disabled
-	if !notifications {
-		return
-	}
+	DebugLogger.Println("MessageUsername:", *message.Username)
+	DebugLogger.Println("MessageContent:", *message.Content)
 
 	// Send the notification
 	err := discordwebhook.SendMessage(urls.Discord.WebhookUrl, message)
 	if err != nil {
 		ErrorLogger.Fatalln(err)
 	} else {
-		InfoLogger.Println("Fired webhook")
+		InfoLogger.Println("Sent webhook notification")
 	}
 
 }
