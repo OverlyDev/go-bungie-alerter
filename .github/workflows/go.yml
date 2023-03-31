@@ -86,7 +86,7 @@ jobs:
         if  [ ! -z $BUMP_VERSION ] && [ $BUMP_VERSION != "" ]; then
           echo $BUMP_VERSION >> $GITHUB_OUTPUT
         else
-          echo "testing" > $GITHUB_OUTPUT
+          echo testing > $GITHUB_OUTPUT
         fi
       shell: bash
 
