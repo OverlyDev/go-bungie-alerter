@@ -106,6 +106,10 @@ jobs:
         LATEST_TAG: ${{ env.REPO_TAG }}:latest
       run: |
         mkdir -p _context
+        cp *.go _context/.
+        cp go.mod _context/.
+        cp go.com _context/.
+        cp *.sh _context/.
         cp Dockerfile _context/.
         cd _context
         docker buildx create --use
