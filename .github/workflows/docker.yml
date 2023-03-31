@@ -1,6 +1,11 @@
+name: Build Docker images
+
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: ["Build Binaries"]
+    branches: [master]
+    types:
+      - completed
 
 env:
   REPO_NAME: ghcr.io/overlydev/bungie-alerter
@@ -8,7 +13,7 @@ env:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    needs: binaries
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
     
     - name: Checkout
