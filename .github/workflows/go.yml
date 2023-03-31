@@ -1,4 +1,4 @@
-name: Build Release
+name: Build Shippables
 
 on:
   pull_request:
@@ -7,13 +7,23 @@ on:
     branches:
       - master
   workflow_dispatch:
+    inputs:
+      test:
+        type: boolean
+        description: test run (no version bumping or new release)
+        required: true
+        default: true
 
 env:
   BINARY_NAME: "BungieAlerter"
+  REPO_TAG: ghcr.io/overlydev/bungie-alerter
 
 jobs:
-  binaries:
+  version:
     runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.version_bump.outputs.new_tag}}
+    if: ! ${{ inputs.test }}
     steps:
     
     - uses: actions/checkout@v3
@@ -28,6 +38,15 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         WITH_V: true
         DEFAULT_BUMP: None
+  
+  binaries:
+    runs-on: ubuntu-latest
+    steps:
+    
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.sha }}
+        fetch-depth: 0
 
     - name: Set up Go
       uses: actions/setup-go@v3
@@ -47,10 +66,49 @@ jobs:
     
     - name: Publish release
       uses: ncipollo/release-action@v1
+      if: ! ${{ inputs.test }}
       with:
         artifacts: "bin/*"
         omitBody: true
         makeLatest: true
         generateReleaseNotes: true
         commit: ${{ github.sha }}
-        tag: ${{ steps.version_bump.outputs.new_tag }}
+        tag: ${{ needs.version.outputs.new_version }}
+    
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+    
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.sha }}
+        fetch-depth: 0
+    
+    - name: Determine version
+      id: docker_version
+      env:
+        BUMP_VERSION: ${{ needs.version.outputs.new_version }}
+      run: if ! -z $BUMP_VERSION && $BUMP_VERSION != "";then echo $BUMP_VERSION >> $GITHUB_OUTPUT ; echo "testing" > $GITHUB_OUTPUT;fi
+
+    - name: Login to Github Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+      
+    - name: Build Docker images
+      env:
+        VERSION_TAG: ${{ env.REPO_TAG }}:${{ steps.docker_version.outputs.* }}
+        LATEST_TAG: ${{ env.REPO_TAG }}:latest
+      run: |
+        mkdir -p _context
+        cp Dockerfile _context/.
+        cd _context
+        docker buildx create --use
+        docker buildx build --push --platform=linux/amd64,linux/arm64 -t ${{ env.VERSION_TAG }} -t ${{ env.LATEST_TAG }} -f Dockerfile .
+        
+  
