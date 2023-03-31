@@ -82,7 +82,7 @@ jobs:
       id: docker_version
       env:
         BUMP_VERSION: ${{ needs.version.outputs.new_version }}
-      run: if ! -z $BUMP_VERSION && $BUMP_VERSION != "";then echo $BUMP_VERSION >> $GITHUB_OUTPUT ; echo "testing" > $GITHUB_OUTPUT;fi
+      run: if [[! -z $BUMP_VERSION]] && [[$BUMP_VERSION != ""]];then echo $BUMP_VERSION >> $GITHUB_OUTPUT; echo "testing" > $GITHUB_OUTPUT;fi
 
     - name: Login to Github Container Registry
       uses: docker/login-action@v2
