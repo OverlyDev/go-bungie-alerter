@@ -102,4 +102,4 @@ jobs:
         context: .
         platforms: linux/amd64,linux/arm64
         push: true
-        tags: ${{ VERSION_TAG }},${{ LATEST_TAG }}  
+        tags: ${{ env.VERSION_TAG }},${{ env.LATEST_TAG }}  
