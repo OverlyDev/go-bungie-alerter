@@ -15,7 +15,7 @@ jobs:
   bump:
     runs-on: ubuntu-latest
     outputs:
-      new_version: ${{ steps.version_bump.outputs.new_tag}}
+      new_version: ${{ steps.version_bump.outputs.new_tag }}
     steps:
     
     - name: Checkout
@@ -35,6 +35,8 @@ jobs:
   binaries:
     runs-on: ubuntu-latest
     needs: bump
+    outputs:
+      tag_version: ${{ needs.bump.outputs.new_version }}
     steps:
     
     - name: Checkout
@@ -72,8 +74,6 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     needs: binaries
-    env:
-      TAG_VERSION: ${{ needs.bump.outputs.new_version }}
     steps:
     
     - name: Checkout
@@ -88,7 +88,7 @@ jobs:
       with:
         images: ${{ env.REPO_NAME }}
         tags: |
-          type=raw,value=${{ env.TAG_VERSION }}
+          type=raw,value=${{ needs.binaries.outputs.tag_version }}
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
