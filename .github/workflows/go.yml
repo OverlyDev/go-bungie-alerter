@@ -67,7 +67,7 @@ jobs:
         artifacts: "bin/*"
         omitBody: true
         makeLatest: true
-        generateReleaseNotes: false
+        generateReleaseNotes: true
         commit: ${{ github.sha }}
         tag: ${{ needs.bump.outputs.new_version }}
 
