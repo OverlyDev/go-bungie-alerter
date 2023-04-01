@@ -68,15 +68,12 @@ jobs:
         generateReleaseNotes: true
         commit: ${{ github.sha }}
         tag: ${{ needs.bump.outputs.new_version }}
-    
-    - name: sanity
-      env:
-        PLS: ${{ needs.bump.outputs.new_version }}
-      run: echo $PLS
 
   docker:
     runs-on: ubuntu-latest
     needs: binaries
+    env:
+      TAG_VERSION: ${{ needs.bump.outputs.new_version }}
     steps:
     
     - name: Checkout
@@ -91,7 +88,7 @@ jobs:
       with:
         images: ${{ env.REPO_NAME }}
         tags: |
-          type=raw,value=${{ needs.bump.outputs.new_version }}
+          type=raw,value=${{ env.TAG_VERSION }}
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
