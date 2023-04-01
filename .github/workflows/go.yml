@@ -89,6 +89,7 @@ jobs:
         images: ${{ env.REPO_NAME }}
         tags: |
           type=raw,value=${{ needs.binaries.outputs.tag_version }}
+          type-raw,value=latest
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2

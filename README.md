@@ -49,5 +49,3 @@ There's a lot of refinement and features I'd like to add. Below should hopefully
 
 - publish docker images (skeleton is already in place)
 - test if minification breaks things (only briefly played around with this)
-
-weeeeee
