@@ -44,8 +44,14 @@ examples:
 - Run with specified webhook: `BungieAlerter -w <your webhook> go`
 - Run without webhook notifications: `BungieAlerter -s go`
 
+
+### Docker
+There's also docker images built with compressed binaries for ease of deployment.
+
+These are literally just the binaries dropped into an alpine base image. You'll need to modify the entrypoint most likely, give it a webhook somehow, and then be off to the races
+
 ## Future
 There's a lot of refinement and features I'd like to add. Below should hopefully be an up-to-date listing of those.
 
-- publish docker images (skeleton is already in place)
-- test if minification breaks things (only briefly played around with this)
+- watch for issues
+- option for adding additional twitter accounts?
