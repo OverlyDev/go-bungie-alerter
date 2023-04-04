@@ -55,3 +55,4 @@ There's a lot of refinement and features I'd like to add. Below should hopefully
 
 - watch for issues
 - option for adding additional twitter accounts?
+- youtube accounts
