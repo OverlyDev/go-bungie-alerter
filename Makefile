@@ -1,5 +1,6 @@
 MAIN := .
 OUT := bin/bungie-alerter
+LINTER := $(shell go env GOPATH)/bin/golangci-lint
 
 build: format tidy clean
 	go generate
@@ -13,6 +14,9 @@ tidy:
 
 format:
 	go fmt
+
+lint:
+	GOGC=off $(LINTER) run
 
 clean:
 	rm -f bin/*
