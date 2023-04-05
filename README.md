@@ -6,6 +6,8 @@ The repo is a mess, I know. I have no idea what I'm doing :)
 
 Release binaries can be found to the right side, or [here](https://github.com/OverlyDev/go-bungie-alerter/releases/latest) is a direct link to the latest release.
 
+The changlog can be found [here](https://github.com/OverlyDev/go-bungie-alerter/blob/master/CHANGELOG.md)
+
 ## Usage
 
 ### Webhook
@@ -32,15 +34,17 @@ There's now a basic CLI. Running the binary without any args will provide you wi
 A quick overview of the available options:
 
 args:
-- `go`   - starts BungieAlerter
-- `help` - shows help menu
+- `go`      - starts BungieAlerter
+- `update`  - checks for a new version of BungieAlerter
+- `help`    - shows help menu
 
 flags:
-- `--webhook/-w` - specify the webhook url to use
-- `--silent/-s`  - run without firing the webhook
-- `--debug/-d`   - logs additional information
-- `--help/-h`    - shows help menu
-- `--version/-v` - shows the binary version information 
+- `--webhook/-w`    - specify the webhook url to use
+- `--silent/-s`     - run without firing the webhook
+- `--debug/-d`      - logs additional information
+- `logfile/-f`      - enables logging to file
+- `--help/-h`       - shows help menu
+- `--version/-v`    - shows the binary version information 
 
 examples:
 - Run with specified webhook: `BungieAlerter -w <your webhook> go`
