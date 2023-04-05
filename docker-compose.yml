@@ -1,0 +1,8 @@
+version: "3.9"
+services:
+  alerter:
+    container_name: bungie-alerter
+    image: ghcr.io/overlydev/bungie-alerter:latest
+    environment:
+      DISCORD_WEBHOOK: # Your webhook goes here
+    command: ./app/BungieAlerter go
