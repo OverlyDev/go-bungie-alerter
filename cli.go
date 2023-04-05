@@ -22,14 +22,9 @@ func censorWebhook(webhook string) string {
 
 func cliHandler() {
 	app := &cli.App{
-		Name: "BungieAlerter",
-		Version: fmt.Sprintf("%s | ref: %s | built: %s\n\t %s",
-			strings.ReplaceAll(version, "\n", ""),
-			strings.ReplaceAll(reference, "\n", ""),
-			strings.ReplaceAll(buildTime, "\n", ""),
-			"Repo: https://github.com/OverlyDev/go-bungie-alerter",
-		),
-		Usage: "Sends messages to Discord webhooks on new Bungie posts",
+		Name:    "BungieAlerter",
+		Version: fmt.Sprintf("%s | ref: %s | built: %s\n\t%s", version, reference, buildTime, "Repo: https://github.com/OverlyDev/go-bungie-alerter"),
+		Usage:   "Sends messages to Discord webhooks on new Bungie posts",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "webhook",
@@ -47,6 +42,11 @@ func cliHandler() {
 				Aliases: []string{"d"},
 				Usage:   "logs additional information",
 			},
+			&cli.BoolFlag{
+				Name:    "logfile",
+				Aliases: []string{"l"},
+				Usage:   "Enable logging to file",
+			},
 		},
 		Commands: []*cli.Command{
 			{
@@ -54,24 +54,20 @@ func cliHandler() {
 				Usage: "Start BungieAlerter",
 				Action: func(cCtx *cli.Context) error {
 					printVersion()
+					handleFlags(cCtx)
 
-					// Enable debug logging if given debug flag
-					if cCtx.Bool("debug") {
-						setLoggerDebugFlags()
-						DebugLogger.Println("Debug logs enabled")
-					}
-
-					// Disable webhooks if given silent flag
-					if !cCtx.Bool("silent") {
-						notifications = true
-						obtainWebhookUrl(cCtx)
-					} else {
-						notifications = false
-						InfoLogger.Println("Webhook notifications disabled")
-					}
-
+					startTime = time.Now().UTC()
 					readTimestampsFile()
-					action_loop()
+					actionLoop()
+					return nil
+				},
+			},
+			{
+				Name:  "update",
+				Usage: "Check for new version of BungieAlerter",
+				Action: func(cCtx *cli.Context) error {
+					// handleFlags(cCtx)
+					checkForNewVersion()
 					return nil
 				},
 			},
@@ -83,15 +79,7 @@ func cliHandler() {
 	}
 }
 
-func setLoggerDebugFlags() {
-	InfoLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
-	ErrorLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
-	AlertLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
-	DebugLogger.SetOutput(log.Default().Writer())
-	DebugLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
-}
-
-func obtainWebhookUrl(cCtx *cli.Context) error {
+func obtainWebhookUrl(cCtx *cli.Context) {
 	// Obtain webhook url from flags, falling back to env
 	webhook := cCtx.String("webhook")
 	source := ""
@@ -99,7 +87,11 @@ func obtainWebhookUrl(cCtx *cli.Context) error {
 	if webhook != "" {
 		source = "flag"
 	} else {
-		godotenv.Load()
+		err := godotenv.Load()
+		if err != nil {
+			ErrorLogger.Println("Error loading env")
+			os.Exit(1)
+		}
 		_, found := os.LookupEnv("DISCORD_WEBHOOK")
 		if !found {
 			ErrorLogger.Println("DISCORD_WEBHOOK not provided, exiting")
@@ -122,10 +114,9 @@ func obtainWebhookUrl(cCtx *cli.Context) error {
 
 	// Save the webhook for later use
 	urls.Discord.WebhookUrl = webhook
-	return nil
 }
 
-func action_loop() {
+func actionLoop() {
 	feedParser := gofeed.NewParser()
 
 	InfoLogger.Println("Starting")
@@ -145,5 +136,27 @@ func action_loop() {
 		InfoLogger.Println("Sleeping 60s")
 		time.Sleep(60 * time.Second)
 		fmt.Println()
+	}
+}
+
+func handleFlags(context *cli.Context) {
+	// Enable debug logging if given debug flag
+	if context.Bool("debug") {
+		setLoggerDebug()
+		DebugLogger.Println("Debug logs enabled")
+	}
+
+	// Disable webhooks if given silent flag
+	if !context.Bool("silent") {
+		notifications = true
+		obtainWebhookUrl(context)
+	} else {
+		notifications = false
+		InfoLogger.Println("Webhook notifications disabled")
+	}
+
+	// Enable logging to file if given logfile flag
+	if context.Bool("logfile") {
+		setLoggerMultiWrite(context.Bool("debug"))
 	}
 }

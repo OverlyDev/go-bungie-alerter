@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"log"
+	"time"
 )
 
 var (
@@ -14,6 +15,7 @@ var (
 	twitterAuth   twitterAuthStruct
 	timestamps    timestampStruct
 	notifications bool
+	startTime     time.Time
 )
 
 func init() {

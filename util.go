@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"os/signal"
 	"reflect"
@@ -90,7 +92,10 @@ func readTimestampsFile() {
 		writeTimestampsFile()
 	} else {
 		InfoLogger.Println("Loaded timestamps.json")
-		json.Unmarshal(data, &timestamps)
+		err := json.Unmarshal(data, &timestamps)
+		if err != nil {
+			ErrorLogger.Println("Error during json.Unmarshal")
+		}
 		DebugLogger.Println("Timestamp data read:", timestamps)
 	}
 
@@ -125,6 +130,11 @@ func populateUrlStorage() {
 	DebugLogger.Println("UrlStorage:", urls)
 }
 
+func getRuntime() {
+	elapsed := time.Now().UTC().Sub(startTime)
+	InfoLogger.Printf("Ran for %s since %s", elapsed.Round(time.Second), startTime)
+}
+
 func signalHandler() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -132,7 +142,41 @@ func signalHandler() {
 		<-c
 		fmt.Print("\r")
 		DebugLogger.Println("Triggered signal handler")
+		getRuntime()
 		InfoLogger.Println("Goodbye")
 		os.Exit(0)
 	}()
+}
+
+func triggerInterrupt() {
+	err := syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+	if err != nil {
+		ErrorLogger.Println("Error triggering interrupt")
+		DebugLogger.Println(err)
+	}
+}
+
+func setLoggerDebug() {
+	InfoLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
+	ErrorLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
+	AlertLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
+	DebugLogger.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.LUTC)
+	DebugLogger.SetOutput(log.Default().Writer())
+}
+
+func setLoggerMultiWrite(debugEnabled bool) {
+	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
+	if err != nil {
+		ErrorLogger.Println("Error opening log file: log.txt; not writing logs to file")
+		return
+	}
+
+	multiLog := io.MultiWriter(log.Default().Writer(), logFile)
+	InfoLogger.SetOutput(multiLog)
+	ErrorLogger.SetOutput(multiLog)
+	AlertLogger.SetOutput(multiLog)
+	if debugEnabled {
+		DebugLogger.SetOutput(multiLog)
+	}
+	InfoLogger.Println("Logging to file: log.txt")
 }

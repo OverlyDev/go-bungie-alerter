@@ -7,7 +7,10 @@ build: format tidy clean
 	go build -o $(OUT) $(MAIN)
 
 run: format
-	go run $(MAIN)
+	go run $(MAIN) go
+
+debug: format
+	go run $(MAIN) -d -l go
 
 tidy:
 	go mod tidy
@@ -28,12 +31,10 @@ exec: build
 
 minify: clean
 	go generate
-	go build -o bin/hello-normal $(MAIN)
-	go build -ldflags "-s -w" -o bin/hello-stripped $(MAIN)
-	upx -o bin/hello-normal-upx bin/hello-normal
-	upx -o bin/hello-stripped-upx bin/hello-stripped
-	upx --best --lzma -o bin/hello-normal-upx-bestlzma bin/hello-normal
-	upx --best --lzma -o bin/hello-stripped-upx-bestlzma bin/hello-stripped
+	go build -o $(OUT)-normal $(MAIN)
+	go build -ldflags "-s -w" -o $(OUT)-stripped $(MAIN)
+	upx --best --lzma -o $(OUT)-normal-upx-bestlzma $(OUT)-normal
+	upx --best --lzma -o $(OUT)-stripped-upx-bestlzma $(OUT)-stripped
 	ls -lh bin
 
 docker: clean
