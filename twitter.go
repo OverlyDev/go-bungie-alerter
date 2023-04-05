@@ -55,7 +55,11 @@ func getTwitterAuth() {
 
 	// Unmarshal json response
 	var responseObject guestTokenStruct
-	json.Unmarshal(responseData, &responseObject)
+	jsonErr := json.Unmarshal(responseData, &responseObject)
+	if err != nil {
+		ErrorLogger.Println("Error during json.Unmarshal")
+		DebugLogger.Println(jsonErr)
+	}
 
 	// Save token
 	twitterAuth.Public = publicToken
@@ -64,39 +68,82 @@ func getTwitterAuth() {
 
 }
 
-// Returns latest tweet from supplied url
-func makeTwitterRequest(url, account string) (*tweetStruct, error) {
-	// Create the request
-	req, err := http.NewRequest("GET", url, nil)
+// Creates a request object containing given url and our headers
+//
+//	success = (http.Request, nil)
+//	fail = (nil, err)
+func createTwitterWebRequest(method, url string) (*http.Request, error) {
+	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
-		ErrorLogger.Println(err)
+		ErrorLogger.Println("Failed to create Twitter web request for:", url)
+		DebugLogger.Println(err)
 		return nil, err
 	}
 
-	// Add our auth headers, acquired via getTwitterAuth
 	req.Header.Set("Authorization", twitterAuth.Public)
 	req.Header.Set("x-guest-token", twitterAuth.Guest)
-	DebugLogger.Println("Headers:", req.Header)
 
-	//Send request
-	DebugLogger.Println("Sending twitter tweet request")
+	return req, nil
+}
+
+// "Does" a request
+//
+//	success = (reponse.statusCode, response.Body)
+//	fail = (0, nil)
+func submitWebRequest(request *http.Request) (int, io.ReadCloser) {
 	client := http.DefaultClient
-	response, err := client.Do(req)
+	response, err := client.Do(request)
 	if err != nil {
-		ErrorLogger.Println(err)
-		DebugLogger.Println("Response:", response)
-		return nil, err
+		ErrorLogger.Println("Error making web request to:", request.URL)
+		DebugLogger.Println(err)
+		return 0, nil
 	}
 
-	// Something went wrong :(
-	if response.StatusCode != 200 {
-		ErrorLogger.Printf("Got bad twitter response from: %s\n", account)
-		DebugLogger.Println("Response:", response)
-		return nil, fmt.Errorf("no data")
+	return response.StatusCode, response.Body
+}
+
+// Returns latest tweet from supplied url
+func makeTwitterRequest(url, account string) (*tweetStruct, error) {
+	var statusCode int = 0
+	var body io.ReadCloser = nil
+
+	// Handle non-200 http status codes
+	attempts := 1
+	for statusCode != 200 {
+		// Bail if more than 3 attempts
+		if attempts > 3 {
+			ErrorLogger.Println("Max retry attempts")
+			return nil, fmt.Errorf("no data")
+		}
+
+		// Create the request
+		DebugLogger.Println("Creating request for:", url)
+		req, err := createTwitterWebRequest("GET", url)
+		if err != nil {
+			return nil, fmt.Errorf("no data")
+		}
+		// Send request
+		DebugLogger.Println("Sending twitter tweet request")
+		statusCode, body = submitWebRequest(req)
+
+		switch statusCode {
+		// Bail on a 404
+		case 404:
+			ErrorLogger.Println("Got 404 from account:", account)
+			DebugLogger.Println("Full url:", url)
+			return nil, fmt.Errorf("no data")
+
+		// Renew guest-token on a 403
+		case 403:
+			InfoLogger.Println("Renewing Twitter guest-token")
+			getTwitterAuth()
+		}
+
+		attempts += 1
 	}
 
 	// Read the body
-	responseData, err := io.ReadAll(response.Body)
+	responseData, err := io.ReadAll(body)
 	if err != nil {
 		ErrorLogger.Println(err)
 		DebugLogger.Println("ResponseData:", responseData)
@@ -105,7 +152,11 @@ func makeTwitterRequest(url, account string) (*tweetStruct, error) {
 
 	// Unmarshall json response
 	var responseObject []tweetStruct
-	json.Unmarshal(responseData, &responseObject)
+	jsonErr := json.Unmarshal(responseData, &responseObject)
+	if jsonErr != nil {
+		ErrorLogger.Println("Error during json.Unmarshal")
+		DebugLogger.Println(jsonErr)
+	}
 
 	// Grab and return the latest tweet
 	latestTweet := responseObject[0]
@@ -132,6 +183,7 @@ func checkForTweets() bool {
 			continue
 		}
 
+		// Compare timestamps
 		tweetTime := convertTwitterTimeStrToTime(tweet.Created)
 		DebugLogger.Println("TweetTime:", tweetTime)
 		lastTweetTime := convertStrToTime(getField(&timestamps, "Twitter"+account))
