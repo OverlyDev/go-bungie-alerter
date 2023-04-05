@@ -6,6 +6,7 @@ on:
       - closed
     branches:
       - master
+  workflow_dispatch:
 
 env:
   BINARY_NAME: "BungieAlerter"
