@@ -56,6 +56,8 @@ There's also docker images built with compressed binaries for ease of deployment
 
 These are literally just the binaries dropped into an alpine base image. You'll need to modify the entrypoint most likely, give it a webhook somehow, and then be off to the races
 
+There's a template `docker-compose.yml` in the repo [here](https://github.com/OverlyDev/go-bungie-alerter/blob/master/docker-compose.yml)
+
 ## Future
 There's a lot of refinement and features I'd like to add over time. There's also the potential of making this more of a generic application, allowing users to add only the channels/accounts/websites that they personally want notifications for; who knows.
 
