@@ -6,6 +6,10 @@ build: format tidy clean
 	go generate
 	go build -o $(OUT) $(MAIN)
 
+windows: format tidy clean
+	go generate
+	GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o $(OUT)-windows-amd64.exe $(MAIN)
+
 run: format
 	go run $(MAIN) go
 

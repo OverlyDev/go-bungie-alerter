@@ -149,10 +149,15 @@ func signalHandler() {
 }
 
 func triggerInterrupt() {
-	err := syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+	p, err := os.FindProcess(os.Getpid())
 	if err != nil {
 		ErrorLogger.Println("Error triggering interrupt")
 		DebugLogger.Println(err)
+	}
+	sigErr := p.Signal(syscall.SIGTERM)
+	if sigErr != nil {
+		ErrorLogger.Println("Error sending signal")
+		DebugLogger.Println(sigErr)
 	}
 }
 
